@@ -1,0 +1,56 @@
+version: '3'
+services:
+  jenkins:
+    container_name: jenkins
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    volumes:
+      - $PWD/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    networks:
+      - net
+  remote_host:
+    container_name: remote-host
+    build:
+      context: .
+      dockerfile: Dockerfile_remote-host
+    ports:
+      - "8111:80"
+      # - "2222:22"
+    networks:
+      - net
+  db_host:
+    container_name: db
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - $PWD/mysql:/var/lib/mysql
+    networks:
+      - net
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog
+    ports:
+      - "1027:1025" 
+      - "8027:8025"
+    networks:
+      - net
+  git:
+    container_name: git-server
+    image: 'gitlab/gitlab-ce:latest'
+    hostname: 'gitlab.example.com'
+    ports:
+      - '8090:80'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
+    networks:
+      - net
+networks:
+  net:
